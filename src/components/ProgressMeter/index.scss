@@ -1,0 +1,21 @@
+.progress-meter__label {
+  display: flex;
+  justify-content: space-between;
+  color: #766d60;
+  font-size: 24px;
+}
+
+.progress-meter__track {
+  overflow: hidden;
+  height: 16px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: rgba(39, 82, 65, 0.12);
+}
+
+.progress-meter__bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #275241, #cf6846);
+  transition: width 180ms ease;
+}
