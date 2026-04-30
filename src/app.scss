@@ -1,0 +1,49 @@
+page {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(222, 116, 81, 0.14), transparent 32%),
+    linear-gradient(180deg, #f7efe2 0%, #f4ead8 100%);
+  color: #24372f;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+
+view,
+text,
+button {
+  box-sizing: border-box;
+}
+
+button {
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  line-height: 1;
+}
+
+.page-shell {
+  min-height: 100vh;
+  padding: 32px 28px 48px;
+}
+
+.eyebrow {
+  color: #9a5a37;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.page-title {
+  display: block;
+  margin-top: 12px;
+  color: #1f3d32;
+  font-size: 52px;
+  font-weight: 900;
+  line-height: 1.08;
+}
+
+.muted-copy {
+  color: #746b5f;
+  font-size: 26px;
+  line-height: 1.65;
+}
