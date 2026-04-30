@@ -1,0 +1,32 @@
+.result-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.result-page__suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 30px;
+  border-radius: 32px;
+  background: rgba(255, 250, 240, 0.76);
+}
+
+.result-page__suggestions text:first-child {
+  color: #1f3d32;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.result-page__suggestions text:not(:first-child) {
+  color: #746b5f;
+  font-size: 26px;
+  line-height: 1.5;
+}
+
+.result-page__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}

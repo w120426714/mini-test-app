@@ -1,0 +1,34 @@
+.profile-page {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.profile-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.profile-page__item,
+.profile-page__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 30px;
+  border-radius: 30px;
+  background: rgba(255, 250, 240, 0.8);
+}
+
+.profile-page__item text:first-child,
+.profile-page__empty text:first-child {
+  color: #1f3d32;
+  font-size: 32px;
+  font-weight: 900;
+}
+
+.profile-page__item text:last-child,
+.profile-page__empty text:last-child {
+  color: #746b5f;
+  font-size: 25px;
+}

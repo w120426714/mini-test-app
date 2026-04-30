@@ -1,0 +1,47 @@
+.detail-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.detail-page__desc {
+  display: block;
+}
+
+.detail-page__ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 34px;
+  border-radius: 38px;
+  color: #fffaf0;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.detail-page__ticket--forest {
+  background: #275241;
+}
+
+.detail-page__ticket--sunset {
+  background: #cf6846;
+}
+
+.detail-page__ticket--ocean {
+  background: #4d7c8a;
+}
+
+.detail-page__dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.detail-page__dimensions text {
+  padding: 16px 22px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.82);
+  color: #275241;
+  font-size: 24px;
+  font-weight: 800;
+}

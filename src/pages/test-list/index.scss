@@ -1,0 +1,40 @@
+.test-list-page__tabs {
+  display: flex;
+  gap: 16px;
+  margin-top: 34px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.test-list-page__tabs text {
+  padding: 18px 28px;
+  border-radius: 999px;
+  background: rgba(255, 250, 240, 0.72);
+  color: #71695f;
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.test-list-page__tabs .is-active {
+  background: #275241;
+  color: #fffaf0;
+}
+
+.test-list-page__list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  margin-top: 30px;
+}
+
+.test-list-page__empty {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 48px 28px;
+  border-radius: 32px;
+  background: rgba(255, 250, 240, 0.75);
+  color: #746b5f;
+  font-size: 27px;
+  text-align: center;
+}

@@ -1,0 +1,35 @@
+.quiz-page {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.quiz-page__question {
+  display: block;
+  margin-top: 24px;
+  color: #1f3d32;
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1.25;
+}
+
+.quiz-page__options {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.quiz-page__option {
+  padding: 30px;
+  border: 2px solid rgba(39, 82, 65, 0.12);
+  border-radius: 30px;
+  background: rgba(255, 250, 240, 0.84);
+  color: #33483e;
+  font-size: 29px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.quiz-page__option:active {
+  transform: scale(0.985);
+}

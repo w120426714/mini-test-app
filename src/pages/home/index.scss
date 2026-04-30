@@ -1,0 +1,64 @@
+.home-page__intro {
+  display: block;
+  margin-top: 20px;
+}
+
+.home-page__hero-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 38px;
+  padding: 34px;
+  border-radius: 42px;
+  background: #275241;
+  color: #fffaf0;
+  box-shadow: 0 26px 54px rgba(39, 82, 65, 0.22);
+}
+
+.home-page__label {
+  color: #f4c9ad;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.home-page__hero-title {
+  font-size: 44px;
+  font-weight: 900;
+}
+
+.home-page__hero-copy {
+  color: rgba(255, 250, 240, 0.78);
+  font-size: 27px;
+  line-height: 1.55;
+}
+
+.home-page__section-head {
+  display: flex;
+  justify-content: space-between;
+  margin: 44px 0 22px;
+  color: #24372f;
+  font-size: 30px;
+  font-weight: 900;
+}
+
+.home-page__section-head text:last-child {
+  color: #9a5a37;
+  font-size: 24px;
+}
+
+.home-page__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.home-page__history {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding: 26px;
+  border-radius: 28px;
+  background: rgba(255, 250, 240, 0.7);
+  color: #6d665d;
+  font-size: 24px;
+}
