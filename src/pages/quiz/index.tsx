@@ -4,6 +4,7 @@ import { AppButton } from '../../components/AppButton'
 import { ProgressMeter } from '../../components/ProgressMeter'
 import { getTestById } from '../../data/tests'
 import { getRouteParam, navigateTo, showToast, switchTab } from '../../lib/platform'
+import { selectQuestionsForRun } from '../../lib/questionPicker'
 import { calculateScore, createHistoryItem, matchResultRange } from '../../lib/scoring'
 import type { AnswerMap } from '../../lib/scoring'
 import { saveHistoryItem } from '../../lib/storage'
@@ -12,6 +13,7 @@ import './index.scss'
 export default function Quiz() {
   const testId = getRouteParam('testId')
   const test = getTestById(testId)
+  const [runQuestions] = useState(() => (test ? selectQuestionsForRun(test) : []))
   const [index, setIndex] = useState(0)
   const [answers, setAnswers] = useState<AnswerMap>({})
 
@@ -25,18 +27,18 @@ export default function Quiz() {
     )
   }
 
-  const question = test.questions[index]
+  const question = runQuestions[index]
 
   function selectOption(optionId: string) {
     const nextAnswers = { ...answers, [question.id]: optionId }
     setAnswers(nextAnswers)
 
-    if (index < test.questions.length - 1) {
+    if (index < runQuestions.length - 1) {
       setIndex(index + 1)
       return
     }
 
-    const scoreResult = calculateScore(test, nextAnswers)
+    const scoreResult = calculateScore({ ...test, questions: runQuestions }, nextAnswers)
     const result = matchResultRange(test, scoreResult.score)
 
     if (!result) {
@@ -56,7 +58,7 @@ export default function Quiz() {
 
   return (
     <View className='page-shell quiz-page'>
-      <ProgressMeter current={index + 1} total={test.questions.length} />
+      <ProgressMeter current={index + 1} total={runQuestions.length} />
       <Text className='quiz-page__question'>{question.title}</Text>
       <View className='quiz-page__options'>
         {question.options.map((option) => (
