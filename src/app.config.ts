@@ -8,17 +8,17 @@ export default defineAppConfig({
     'pages/profile/index'
   ],
   window: {
-    backgroundTextStyle: 'light',
-    navigationBarBackgroundColor: '#f7efe2',
+    backgroundTextStyle: 'dark',
+    navigationBarBackgroundColor: '#ffffff',
     navigationBarTitleText: '心测研究所',
     navigationBarTextStyle: 'black',
-    backgroundColor: '#f7efe2'
+    backgroundColor: '#f5f7fa'
   },
   tabBar: {
-    color: '#6b665b',
-    selectedColor: '#275241',
-    backgroundColor: '#fffaf0',
-    borderStyle: 'white',
+    color: '#94a3b8',
+    selectedColor: '#0f8d83',
+    backgroundColor: '#ffffff',
+    borderStyle: 'black',
     list: [
       {
         pagePath: 'pages/home/index',

@@ -1,7 +1,7 @@
 .profile-page {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 32px;
 }
 
 .profile-page__list {
@@ -15,20 +15,26 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 30px;
-  border-radius: 30px;
-  background: rgba(255, 250, 240, 0.8);
+  padding: 32px 28px;
+  border-radius: 36px;
+  background: #ffffff;
+  box-shadow:
+    0 2px 16px rgba(0, 0, 0, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .profile-page__item text:first-child,
 .profile-page__empty text:first-child {
-  color: #1f3d32;
-  font-size: 32px;
+  color: #0f172a;
+  font-size: 34px;
   font-weight: 900;
+  letter-spacing: -0.3px;
 }
 
 .profile-page__item text:last-child,
 .profile-page__empty text:last-child {
-  color: #746b5f;
-  font-size: 25px;
+  color: #64748b;
+  font-size: 26px;
+  line-height: 1.5;
 }

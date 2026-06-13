@@ -2,27 +2,32 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 88px;
-  padding: 0 32px;
+  min-height: 96px;
+  padding: 0 44px;
   border-radius: 999px;
-  font-size: 28px;
-  font-weight: 800;
-  transition: transform 120ms ease, opacity 120ms ease;
+  font-size: 30px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  transition: transform 120ms ease, opacity 120ms ease, box-shadow 120ms ease;
 
   &:active {
-    transform: scale(0.98);
+    transform: scale(0.97);
     opacity: 0.9;
   }
 }
 
 .app-button--primary {
-  color: #fffaf0;
-  background: #cf6846;
-  box-shadow: 0 16px 32px rgba(207, 104, 70, 0.24);
+  color: #ffffff;
+  background: linear-gradient(135deg, #0f8d83 0%, #14b8a6 50%, #2dd4bf 100%);
+  box-shadow:
+    0 4px 16px rgba(15, 141, 131, 0.3),
+    0 8px 32px rgba(15, 141, 131, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 .app-button--secondary {
-  color: #275241;
-  background: rgba(255, 250, 240, 0.78);
-  border: 2px solid rgba(39, 82, 65, 0.14);
+  color: #0f172a;
+  background: #ffffff;
+  border: 2px solid rgba(15, 141, 131, 0.2);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }

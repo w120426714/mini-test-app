@@ -11,6 +11,7 @@ interface ResultPanelProps {
 
 export function ResultPanel({ test, result, score, dimensionScores }: ResultPanelProps) {
   const maxDimensionScore = Math.max(...Object.values(dimensionScores), 1)
+  const scoreLabel = test.scoringModel === 'iq-standard' ? '准标准分' : '综合火花值'
 
   return (
     <View className='result-panel'>
@@ -19,7 +20,7 @@ export function ResultPanel({ test, result, score, dimensionScores }: ResultPane
       <Text className='result-panel__tagline'>{result.tagline}</Text>
       <View className='result-panel__score'>
         <Text>{score}</Text>
-        <Text>综合火花值</Text>
+        <Text>{scoreLabel}</Text>
       </View>
       <View className='result-panel__dimensions'>
         {test.dimensions.map((dimension) => {
@@ -40,6 +41,9 @@ export function ResultPanel({ test, result, score, dimensionScores }: ResultPane
         })}
       </View>
       <Text className='result-panel__description'>{result.description}</Text>
+      {test.scoringModel === 'iq-standard' && (
+        <Text className='result-panel__note'>非正式 IQ 诊断，仅用于娱乐测评和自我观察。</Text>
+      )}
     </View>
   )
 }

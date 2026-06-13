@@ -1,40 +1,53 @@
 .test-list-page__tabs {
   display: flex;
   gap: 16px;
-  margin-top: 34px;
+  margin-top: 32px;
   overflow-x: auto;
   white-space: nowrap;
+  padding: 4px 0;
 }
 
 .test-list-page__tabs text {
-  padding: 18px 28px;
+  padding: 16px 28px;
   border-radius: 999px;
-  background: rgba(255, 250, 240, 0.72);
-  color: #71695f;
-  font-size: 25px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 26px;
   font-weight: 800;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.04),
+    0 4px 16px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  transition: all 150ms ease;
 }
 
 .test-list-page__tabs .is-active {
-  background: #275241;
-  color: #fffaf0;
+  background: linear-gradient(135deg, #0f2924, #1a3d38);
+  color: #ffffff;
+  box-shadow:
+    0 4px 16px rgba(15, 41, 36, 0.2),
+    0 8px 32px rgba(15, 41, 36, 0.12);
 }
 
 .test-list-page__list {
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  margin-top: 30px;
+  gap: 20px;
+  margin-top: 32px;
 }
 
 .test-list-page__empty {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 48px 28px;
-  border-radius: 32px;
-  background: rgba(255, 250, 240, 0.75);
-  color: #746b5f;
-  font-size: 27px;
+  gap: 14px;
+  padding: 56px 32px;
+  border-radius: 36px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 28px;
   text-align: center;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.04),
+    0 8px 32px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
 }

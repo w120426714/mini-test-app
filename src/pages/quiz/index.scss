@@ -1,35 +1,84 @@
 .quiz-page {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 32px;
+}
+
+.quiz-page__card {
+  padding: 36px 32px;
+  border-radius: 44px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow:
+    0 4px 20px rgba(32, 71, 66, 0.08),
+    0 12px 48px rgba(32, 71, 66, 0.06);
+  border: 1px solid rgba(13, 143, 134, 0.08);
+}
+
+.quiz-page__meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #0d8f86;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.quiz-page__meta text {
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(13, 143, 134, 0.08), rgba(13, 143, 134, 0.04));
 }
 
 .quiz-page__question {
   display: block;
-  margin-top: 24px;
-  color: #1f3d32;
-  font-size: 44px;
+  margin-top: 32px;
+  color: #0f172a;
+  font-size: 48px;
   font-weight: 900;
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
 }
 
 .quiz-page__options {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-top: 36px;
 }
 
 .quiz-page__option {
-  padding: 30px;
-  border: 2px solid rgba(39, 82, 65, 0.12);
-  border-radius: 30px;
-  background: rgba(255, 250, 240, 0.84);
-  color: #33483e;
-  font-size: 29px;
+  position: relative;
+  padding: 32px 32px 32px 40px;
+  border: 2px solid rgba(13, 143, 134, 0.1);
+  border-radius: 32px;
+  background: linear-gradient(135deg, #f8fdfb, #f0fdf9);
+  color: #1a2e2a;
+  font-size: 30px;
   font-weight: 800;
   line-height: 1.45;
+  transition: all 150ms ease;
+
+  &:active {
+    transform: scale(0.985);
+    background: linear-gradient(135deg, #e6f7f4, #d4f1ec);
+    border-color: rgba(13, 143, 134, 0.3);
+  }
 }
 
-.quiz-page__option:active {
-  transform: scale(0.985);
+.quiz-page__option::before {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  bottom: 24px;
+  width: 8px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0d8f86, #ffb84d);
+  content: '';
+  opacity: 0;
+  transition: opacity 150ms ease;
 }
+
+.quiz-page__option:active::before {
+  opacity: 1;
+}
+

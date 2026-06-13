@@ -1,4 +1,5 @@
 import type { TestCategory, TestDefinition, TestOption, TestQuestion } from '../types/test'
+import { buildAssessmentBank, buildIqQuestionBank } from './questionBanks'
 
 type Tone = TestDefinition['coverTone']
 
@@ -437,12 +438,18 @@ export const tests: TestDefinition[] = [
     estimatedMinutes: 3,
     popularity: '8.6w',
     coverTone: 'forest',
+    bankSize: 500,
+    bankSource: '原创情绪情境题库，参考公开人格/情绪测评维度设计',
     dimensions: [
       { key: 'empathy', label: '共情力' },
       { key: 'stability', label: '稳定感' },
       { key: 'expression', label: '表达力' }
     ],
-    questions: emotionalRadarQuestions,
+    questions: buildAssessmentBank({
+      testId: 'emotional-radar',
+      seedQuestions: emotionalRadarQuestions,
+      domains: ['empathy', 'stability', 'expression']
+    }),
     resultRanges: [
       makeResult('warm-listener', 0, 26, '温柔倾听者', '你的雷达很会接住微小情绪。', '你对别人的状态很敏感，擅长在细节里读懂空气。', ['练习把需求说得更直接', '别把所有人的情绪都扛在自己身上']),
       makeResult('steady-anchor', 27, 42, '稳定定海针', '你的情绪场像一张安全网。', '你能在变化里保持节奏，也愿意让身边人安心。', ['给自己保留放松出口', '在重要关系里多表达真实感受']),
@@ -452,24 +459,27 @@ export const tests: TestDefinition[] = [
   makeTest({
     id: 'brain-spark',
     title: '国际脑力挑战',
-    subtitle: '参考常见 IQ 测试维度，从 18 题题库随机抽取 10 题',
+    subtitle: '参考常见 IQ 测试维度，从 500 题题库随机抽取 10 题',
     category: 'iq',
     description: '这不是正式 IQ 诊断，而是参考国际常见智力测验的数列、类比、空间、逻辑和记忆维度设计的原创娱乐测评。',
     questionCount: 10,
     estimatedMinutes: 5,
     popularity: '12.8w',
     coverTone: 'sunset',
+    bankSize: 500,
+    scoringModel: 'iq-standard',
+    bankSource: '原创认知题，参考 ICAR 公开认知测评题型方向',
     dimensions: [
       { key: 'logic', label: '逻辑推理' },
       { key: 'pattern', label: '规律识别' },
       { key: 'spatial', label: '空间想象' },
       { key: 'memory', label: '工作记忆' }
     ],
-    questions: brainSparkQuestions,
+    questions: buildIqQuestionBank(brainSparkQuestions),
     resultRanges: [
-      makeResult('detail-hunter', 0, 18, '细节猎人', '你靠线索点亮答案。', '你擅长从不起眼的信息里找到关键点，适合处理需要耐心和观察的任务。', ['遇到复杂问题时先抓主线', '给直觉留一点试错空间']),
-      makeResult('logic-builder', 19, 34, '逻辑搭桥人', '你喜欢把混乱整理成路径。', '你的优势是结构化和推理，能把看似零散的现象串成清楚的解释。', ['别让规则限制所有想象', '尝试用草图表达你的推理']),
-      makeResult('spark-maker', 35, 80, '高能脑力火花', '你的脑力反应有很强的综合跃迁感。', '你能在规律、空间和逻辑之间快速切换，适合挑战复合型问题。', ['继续训练限时推理', '尝试矩阵推理和空间折叠题'])
+      makeResult('detail-hunter', 55, 89, '细节猎人', '你靠线索点亮答案。', '这次结果是准标准化脑力估计，不等同于临床 IQ 或正式智力诊断。', ['遇到复杂问题时先抓主线', '给直觉留一点试错空间']),
+      makeResult('logic-builder', 90, 114, '逻辑搭桥人', '你喜欢把混乱整理成路径。', '你的优势是结构化和推理，能把看似零散的现象串成清楚的解释。', ['别让规则限制所有想象', '尝试用草图表达你的推理']),
+      makeResult('spark-maker', 115, 145, '高能脑力火花', '你的脑力反应有很强的综合跃迁感。', '你能在规律、空间和逻辑之间快速切换。分数后续可用真实样本继续校准。', ['继续训练限时推理', '尝试矩阵推理和空间折叠题'])
     ]
   }),
   makeTest({
@@ -482,12 +492,18 @@ export const tests: TestDefinition[] = [
     estimatedMinutes: 3,
     popularity: '9.1w',
     coverTone: 'ocean',
+    bankSize: 500,
+    bankSource: '原创性格情境题库，参考 IPIP 公开人格维度方向',
     dimensions: [
       { key: 'energy', label: '能量感' },
       { key: 'decision', label: '决策感' },
       { key: 'social', label: '社交感' }
     ],
-    questions: innerWeatherQuestions,
+    questions: buildAssessmentBank({
+      testId: 'inner-weather',
+      seedQuestions: innerWeatherQuestions,
+      domains: ['energy', 'decision', 'social']
+    }),
     resultRanges: [
       makeResult('sunny-breeze', 0, 24, '晴风型人格', '你像明亮但不刺眼的风。', '你给人的感觉轻盈、舒服，擅长在关系里制造自然的松弛感。', ['重要机会来临时更主动一点', '把你的好状态留给自己一部分']),
       makeResult('steady-cloud', 25, 40, '稳定云层型人格', '你有自己的节奏和边界。', '你不急着被外界推着走，更相信稳定积累。', ['别把谨慎误认为拖延', '让亲近的人知道你的真实想法']),
@@ -504,12 +520,18 @@ export const tests: TestDefinition[] = [
     estimatedMinutes: 3,
     popularity: '7.4w',
     coverTone: 'forest',
+    bankSize: 500,
+    bankSource: '原创亲密关系情境题库',
     dimensions: [
       { key: 'security', label: '安全感' },
       { key: 'warmth', label: '关系温度' },
       { key: 'boundary', label: '边界感' }
     ],
-    questions: romanceQuestions,
+    questions: buildAssessmentBank({
+      testId: 'romance-compass',
+      seedQuestions: romanceQuestions,
+      domains: ['security', 'warmth', 'boundary']
+    }),
     resultRanges: [
       makeResult('soft-harbor', 0, 21, '柔软港湾', '你很重视被看见和被回应。', '你的爱很有温度，也容易被细微变化牵动。', ['把需求说清楚', '练习给关系留一点呼吸感']),
       makeResult('steady-lover', 22, 34, '稳定恋人', '你适合慢慢建立深关系。', '你重视信任、修复和持续行动。', ['别把稳定藏成沉默', '主动制造一点浪漫']),
@@ -526,12 +548,18 @@ export const tests: TestDefinition[] = [
     estimatedMinutes: 3,
     popularity: '5.9w',
     coverTone: 'sunset',
+    bankSize: 500,
+    bankSource: '原创财富决策情境题库',
     dimensions: [
       { key: 'planning', label: '规划力' },
       { key: 'risk', label: '风险感' },
       { key: 'action', label: '行动力' }
     ],
-    questions: wealthQuestions,
+    questions: buildAssessmentBank({
+      testId: 'money-instinct',
+      seedQuestions: wealthQuestions,
+      domains: ['planning', 'risk', 'action']
+    }),
     resultRanges: [
       makeResult('safe-saver', 0, 20, '稳健储蓄派', '你把安全垫看得很重要。', '你的财务风格稳，但有时会错过小规模试错机会。', ['建立投资学习清单', '用小预算练习决策']),
       makeResult('balanced-builder', 21, 32, '平衡建造者', '你愿意计划，也愿意行动。', '你能在安全和增长之间找到自己的节奏。', ['固定复盘现金流', '把机会拆成可承受风险']),
@@ -548,12 +576,18 @@ export const tests: TestDefinition[] = [
     estimatedMinutes: 3,
     popularity: '6.7w',
     coverTone: 'ocean',
+    bankSize: 500,
+    bankSource: '原创职场行为情境题库',
     dimensions: [
       { key: 'execution', label: '执行力' },
       { key: 'collaboration', label: '协作力' },
       { key: 'leadership', label: '领导力' }
     ],
-    questions: workplaceQuestions,
+    questions: buildAssessmentBank({
+      testId: 'career-engine',
+      seedQuestions: workplaceQuestions,
+      domains: ['execution', 'collaboration', 'leadership']
+    }),
     resultRanges: [
       makeResult('delivery-pro', 0, 20, '交付推进器', '你擅长把事情真正做完。', '你的优势是落地、闭环和可靠，是团队里的稳定输出点。', ['适当抬头看全局', '别把所有执行都揽到自己身上']),
       makeResult('team-connector', 21, 32, '团队连接器', '你让合作变顺。', '你擅长对齐信息、照顾节奏，让不同角色更容易一起工作。', ['会议后明确行动项', '把你的协调价值显性化']),

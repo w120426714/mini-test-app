@@ -18,6 +18,8 @@ export default function TestDetail() {
     )
   }
 
+  const bankSize = test.bankSize || test.questions.length
+
   return (
     <View className='page-shell detail-page'>
       <Text className='eyebrow'>测试说明</Text>
@@ -25,15 +27,32 @@ export default function TestDetail() {
       <Text className='muted-copy detail-page__desc'>{test.description}</Text>
 
       <View className={`detail-page__ticket detail-page__ticket--${test.coverTone}`}>
-        <Text>{test.questionCount} 道题</Text>
-        <Text>{test.estimatedMinutes} 分钟完成</Text>
-        <Text>生成 {test.resultRanges.length} 种可能报告</Text>
+        <View>
+          <Text>{test.questionCount}</Text>
+          <Text>本次抽题</Text>
+        </View>
+        <View>
+          <Text>{bankSize}</Text>
+          <Text>候选题库</Text>
+        </View>
+        <View>
+          <Text>{test.estimatedMinutes}</Text>
+          <Text>分钟完成</Text>
+        </View>
       </View>
 
       <View className='detail-page__dimensions'>
         {test.dimensions.map((dimension) => (
           <Text key={dimension.key}>{dimension.label}</Text>
         ))}
+      </View>
+
+      <View className='detail-page__source'>
+        <Text>题库说明</Text>
+        <Text>{test.bankSource || '原创题库，每次测试随机抽取题目。'}</Text>
+        {test.scoringModel === 'iq-standard' && (
+          <Text>提示：结果为准标准化脑力估计，不等同于正式 IQ 诊断。</Text>
+        )}
       </View>
 
       <AppButton onClick={() => navigateTo(`/pages/quiz/index?testId=${test.id}`)}>开始测试</AppButton>

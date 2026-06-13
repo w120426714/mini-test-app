@@ -11,11 +11,22 @@ export interface TestOption {
   scores: Record<string, number>
 }
 
+export type QuestionDifficulty = 1 | 2 | 3 | 4 | 5
+
+export type QuestionSource = 'curated' | 'generated' | 'public-domain-inspired'
+
 export interface TestQuestion {
   id: string
   testId: string
   title: string
   options: TestOption[]
+  domain?: string
+  difficulty?: QuestionDifficulty
+  kind?: string
+  correctOptionId?: string
+  discrimination?: number
+  explanation?: string
+  source?: QuestionSource
 }
 
 export interface TestResultRange {
@@ -35,9 +46,12 @@ export interface TestDefinition {
   category: TestCategory
   description: string
   questionCount: number
+  bankSize?: number
   estimatedMinutes: number
   popularity: string
   coverTone: 'forest' | 'sunset' | 'ocean'
+  scoringModel?: 'sum' | 'iq-standard'
+  bankSource?: string
   dimensions: TestDimension[]
   questions: TestQuestion[]
   resultRanges: TestResultRange[]

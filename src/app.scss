@@ -1,10 +1,10 @@
 page {
   min-height: 100%;
-  background:
-    radial-gradient(circle at 20% 0%, rgba(222, 116, 81, 0.14), transparent 32%),
-    linear-gradient(180deg, #f7efe2 0%, #f4ead8 100%);
-  color: #24372f;
-  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+  color: #1a202c;
+  font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 view,
@@ -23,27 +23,31 @@ button {
 
 .page-shell {
   min-height: 100vh;
-  padding: 32px 28px 48px;
+  padding: 32px 28px 100px;
 }
 
 .eyebrow {
-  color: #9a5a37;
-  font-size: 24px;
+  display: block;
+  color: #0f8d83;
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
 }
 
 .page-title {
   display: block;
-  margin-top: 12px;
-  color: #1f3d32;
-  font-size: 52px;
+  margin-top: 14px;
+  color: #0f172a;
+  font-size: 48px;
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.15;
+  letter-spacing: -0.5px;
 }
 
 .muted-copy {
-  color: #746b5f;
+  color: #64748b;
   font-size: 26px;
-  line-height: 1.65;
+  line-height: 1.7;
 }
+

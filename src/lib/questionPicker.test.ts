@@ -50,4 +50,21 @@ describe('selectQuestionsForRun', () => {
 
     expect(sampleTest.questions.map((question) => question.id)).toEqual(before)
   })
+
+  it('balances questions across domains when metadata is available', () => {
+    const balancedQuestions = [
+      ...[1, 2, 3, 4, 5, 6, 7, 8].map((index) => ({ ...makeQuestion(index), domain: 'logic', difficulty: 1 })),
+      ...[9, 10].map((index) => ({ ...makeQuestion(index), domain: 'spatial', difficulty: 3 })),
+      ...[11, 12].map((index) => ({ ...makeQuestion(index), domain: 'memory', difficulty: 5 }))
+    ] as unknown as TestQuestion[]
+
+    const questions = selectQuestionsForRun(
+      { ...sampleTest, questionCount: 3, questions: balancedQuestions },
+      () => 0.99
+    )
+
+    expect(new Set(questions.map((question) => question.domain))).toEqual(
+      new Set(['logic', 'spatial', 'memory'])
+    )
+  })
 })

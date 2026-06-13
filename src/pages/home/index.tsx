@@ -10,19 +10,38 @@ export default function Home() {
   const recommended = getRecommendedTest()
   const hotTests = tests.slice(0, 3)
   const historyCount = getHistory().length
+  const bankTotal = tests.reduce((sum, test) => sum + (test.bankSize || test.questions.length), 0)
 
   return (
     <View className='page-shell home-page'>
-      <Text className='eyebrow'>心测研究所</Text>
-      <Text className='page-title'>把今天的你，测成一张有趣报告</Text>
-      <Text className='muted-copy home-page__intro'>
-        轻松完成 1 到 3 分钟测试，生成适合分享的性格、情绪和脑力画像。
-      </Text>
-
       <View className='home-page__hero-card'>
-        <Text className='home-page__label'>今日推荐</Text>
-        <Text className='home-page__hero-title'>{recommended.title}</Text>
-        <Text className='home-page__hero-copy'>{recommended.subtitle}</Text>
+        <Text className='home-page__label'>心测研究所</Text>
+        <Text className='home-page__hero-title'>把今天的你，测成一张有趣报告</Text>
+        <Text className='home-page__hero-copy'>
+          每项约 500 道候选题，开局分层随机抽题，生成适合分享的性格、情绪和脑力画像。
+        </Text>
+        <View className='home-page__stats'>
+          <View>
+            <Text>{tests.length}</Text>
+            <Text>测试主题</Text>
+          </View>
+          <View>
+            <Text>{bankTotal}+</Text>
+            <Text>候选题</Text>
+          </View>
+          <View>
+            <Text>3min</Text>
+            <Text>轻量完成</Text>
+          </View>
+        </View>
+      </View>
+
+      <View className='home-page__today'>
+        <View>
+          <Text className='home-page__label'>今日推荐</Text>
+          <Text className='home-page__today-title'>{recommended.title}</Text>
+          <Text className='home-page__today-copy'>{recommended.subtitle}</Text>
+        </View>
         <AppButton onClick={() => navigateTo(`/pages/test-detail/index?testId=${recommended.id}`)}>
           开始今日测试
         </AppButton>

@@ -59,17 +59,23 @@ export default function Quiz() {
   return (
     <View className='page-shell quiz-page'>
       <ProgressMeter current={index + 1} total={runQuestions.length} />
-      <Text className='quiz-page__question'>{question.title}</Text>
-      <View className='quiz-page__options'>
-        {question.options.map((option) => (
-          <View
-            key={option.id}
-            className='quiz-page__option'
-            onClick={() => selectOption(option.id)}
-          >
-            <Text>{option.label}</Text>
-          </View>
-        ))}
+      <View className='quiz-page__card'>
+        <View className='quiz-page__meta'>
+          <Text>{question.domain || '综合'}</Text>
+          <Text>难度 {question.difficulty || 3}/5</Text>
+        </View>
+        <Text className='quiz-page__question'>{question.title}</Text>
+        <View className='quiz-page__options'>
+          {question.options.map((option) => (
+            <View
+              key={option.id}
+              className='quiz-page__option'
+              onClick={() => selectOption(option.id)}
+            >
+              <Text>{option.label}</Text>
+            </View>
+          ))}
+        </View>
       </View>
       {index > 0 && (
         <AppButton variant='secondary' onClick={() => setIndex(index - 1)}>

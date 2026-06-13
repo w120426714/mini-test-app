@@ -1,4 +1,5 @@
 import type { TestDefinition, TestHistoryItem } from '../types/test'
+import { calculateStandardScore } from './standardScoring'
 
 export interface ScoreResult {
   score: number
@@ -8,6 +9,10 @@ export interface ScoreResult {
 export type AnswerMap = Record<string, string>
 
 export function calculateScore(test: TestDefinition, answers: AnswerMap): ScoreResult {
+  if (test.scoringModel === 'iq-standard') {
+    return calculateStandardScore(test, answers)
+  }
+
   const dimensionScores = test.dimensions.reduce<Record<string, number>>((acc, dimension) => {
     acc[dimension.key] = 0
     return acc
