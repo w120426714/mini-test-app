@@ -1,11 +1,12 @@
 import { Text, View } from '@tarojs/components'
 import { AppButton } from '../../components/AppButton'
 import { getTestById } from '../../data/tests'
-import { getRouteParam, navigateTo, switchTab } from '../../lib/platform'
+import { useRouteParams, navigateTo, switchTab } from '../../lib/platform'
 import './index.scss'
 
 export default function TestDetail() {
-  const testId = getRouteParam('testId')
+  const params = useRouteParams()
+  const testId = params.testId || ''
   const test = getTestById(testId)
 
   if (!test) {

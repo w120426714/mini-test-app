@@ -2,12 +2,13 @@ import { Text, View } from '@tarojs/components'
 import { AppButton } from '../../components/AppButton'
 import { ResultPanel } from '../../components/ResultPanel'
 import { getTestById } from '../../data/tests'
-import { getRouteParam, navigateTo, showToast, switchTab } from '../../lib/platform'
+import { useRouteParams, navigateTo, showToast, switchTab } from '../../lib/platform'
 import { getHistoryItem } from '../../lib/storage'
 import './index.scss'
 
 export default function Result() {
-  const historyId = getRouteParam('historyId')
+  const params = useRouteParams()
+  const historyId = params.historyId || ''
   const history = getHistoryItem(historyId)
   const test = getTestById(history?.testId)
   const result = test?.resultRanges.find((range) => range.id === history?.resultRangeId)

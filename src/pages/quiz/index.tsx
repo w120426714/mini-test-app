@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { AppButton } from '../../components/AppButton'
 import { ProgressMeter } from '../../components/ProgressMeter'
 import { getTestById } from '../../data/tests'
-import { getRouteParam, navigateTo, showToast, switchTab } from '../../lib/platform'
+import { useRouteParams, navigateTo, showToast, switchTab } from '../../lib/platform'
 import { selectQuestionsForRun } from '../../lib/questionPicker'
 import { calculateScore, createHistoryItem, matchResultRange } from '../../lib/scoring'
 import type { AnswerMap } from '../../lib/scoring'
@@ -11,7 +11,8 @@ import { saveHistoryItem } from '../../lib/storage'
 import './index.scss'
 
 export default function Quiz() {
-  const testId = getRouteParam('testId')
+  const params = useRouteParams()
+  const testId = params.testId || ''
   const test = getTestById(testId)
   const [runQuestions] = useState(() => (test ? selectQuestionsForRun(test) : []))
   const [index, setIndex] = useState(0)
