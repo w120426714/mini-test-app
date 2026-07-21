@@ -5,13 +5,14 @@ import { tests } from './tests'
 
 describe('filterTests', () => {
   it('finds tests by dimension label', () => {
-    const result = filterTests(tests, {
+    const input = tests.filter((test) => ['brain-spark', 'emotional-radar'].includes(test.id))
+    const result = filterTests(input, {
       query: '逻辑',
       category: 'all',
       duration: 'all'
     })
 
-    expect(result.map((test) => test.id)).toContain('brain-spark')
+    expect(result.map((test) => test.id)).toEqual(['brain-spark'])
   })
 
   it('combines category and quick-duration filters', () => {
@@ -25,21 +26,27 @@ describe('filterTests', () => {
     expect(result.every((test) => test.category === 'eq' && test.estimatedMinutes <= 3)).toBe(true)
   })
 
-  it('trims queries and compares searchable text without case sensitivity', () => {
-    const englishTitleItems: TestDefinition[] = [
-      { ...tests[0], title: 'Logic Focus' }
-    ]
+  it('trims queries before matching', () => {
+    const input = tests.filter((test) => ['brain-spark', 'emotional-radar'].includes(test.id))
 
-    expect(filterTests(tests, {
+    expect(filterTests(input, {
       query: '  逻辑  ',
       category: 'all',
       duration: 'all'
-    }).map((test) => test.id)).toContain('brain-spark')
-    expect(filterTests(englishTitleItems, {
-      query: 'logic',
+    }).map((test) => test.id)).toEqual(['brain-spark'])
+  })
+
+  it('matches uppercase IQ text with a lowercase query', () => {
+    const input: TestDefinition[] = [
+      { ...tests[0], id: 'iq-title', title: 'Quick IQ Profile', subtitle: '', dimensions: [] },
+      { ...tests[0], id: 'non-match', title: 'Emotional Balance', subtitle: '', dimensions: [] }
+    ]
+
+    expect(filterTests(input, {
+      query: 'iq',
       category: 'all',
       duration: 'all'
-    })).toEqual(englishTitleItems)
+    }).map((test) => test.id)).toEqual(['iq-title'])
   })
 
   it('lets the all category include tests from different categories', () => {
