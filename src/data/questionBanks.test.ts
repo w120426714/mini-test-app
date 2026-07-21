@@ -25,6 +25,23 @@ const seedQuestions: TestQuestion[] = [
 ]
 
 describe('buildAssessmentBank', () => {
+  it('copies a stable seed template id to every generated variant', () => {
+    const seeds = [
+      seedQuestions[0],
+      { ...seedQuestions[1], templateId: 'custom-template' }
+    ]
+    const bank = buildAssessmentBank({
+      testId: 'sample',
+      seedQuestions: seeds,
+      targetCount: 6,
+      domains: ['focus', 'empathy']
+    })
+
+    expect(bank.map((question) => question.templateId)).toEqual([
+      'seed-1', 'custom-template', 'seed-1', 'custom-template', 'seed-1', 'custom-template'
+    ])
+  })
+
   it('preserves each explicit seed domain throughout a 500-question expansion', () => {
     const domainSeeds: TestQuestion[] = [
       {

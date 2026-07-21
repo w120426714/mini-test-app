@@ -59,6 +59,42 @@ const sampleTest: TestDefinition = {
 }
 
 describe('calculateScore', () => {
+  it('normalizes dimension scores across runs with different sampled question counts', () => {
+    const questions = [1, 2, 3].map((index) => ({
+      id: `normalized-q${index}`,
+      testId: 'sample',
+      title: `Normalized question ${index}`,
+      options: [
+        { id: `normalized-q${index}-half`, label: 'Half', scores: { empathy: 2 } },
+        { id: `normalized-q${index}-full`, label: 'Full', scores: { empathy: 4 } }
+      ]
+    }))
+    const threeQuestionRun = {
+      ...sampleTest,
+      normalizeDimensionScores: true,
+      questionCount: 3,
+      questions
+    } as TestDefinition
+    const twoQuestionRun = {
+      ...threeQuestionRun,
+      questionCount: 2,
+      questions: questions.slice(0, 2)
+    }
+
+    const threeQuestionResult = calculateScore(threeQuestionRun, {
+      'normalized-q1': 'normalized-q1-half',
+      'normalized-q2': 'normalized-q2-half',
+      'normalized-q3': 'normalized-q3-half'
+    })
+    const twoQuestionResult = calculateScore(twoQuestionRun, {
+      'normalized-q1': 'normalized-q1-half',
+      'normalized-q2': 'normalized-q2-half'
+    })
+
+    expect(threeQuestionResult).toEqual({ score: 6, dimensionScores: { empathy: 50, logic: 0 } })
+    expect(twoQuestionResult).toEqual({ score: 4, dimensionScores: { empathy: 50, logic: 0 } })
+  })
+
   it('sums total and dimension scores from selected option ids', () => {
     const result = calculateScore(sampleTest, {
       q1: 'q1-a',

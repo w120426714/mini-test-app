@@ -36,6 +36,7 @@ export type QuestionSource = 'curated' | 'generated' | 'public-domain-inspired'
 
 export interface TestQuestion {
   id: string
+  templateId?: string
   testId: string
   title: string
   options: TestOption[]
@@ -70,6 +71,7 @@ export interface TestDefinition {
   popularity: string
   coverTone: 'forest' | 'sunset' | 'ocean'
   scoringModel?: 'sum' | 'iq-standard'
+  normalizeDimensionScores?: boolean
   bankSource?: string
   dimensions: TestDimension[]
   questions: TestQuestion[]

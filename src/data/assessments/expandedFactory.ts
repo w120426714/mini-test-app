@@ -8,6 +8,7 @@ import { buildAssessmentBank } from '../questionBanks'
 
 type CoverTone = TestDefinition['coverTone']
 type ChoiceLabels = readonly [string, string, string]
+const RESULT_DISCLAIMER = '仅供娱乐和自我反思，不构成临床、财务或职业诊断'
 
 interface ExpandedAssessmentInput {
   id: string
@@ -63,6 +64,7 @@ export function createExpandedAssessment(input: ExpandedAssessmentInput): TestDe
     popularity: input.popularity,
     coverTone: input.coverTone,
     scoringModel: 'sum',
+    normalizeDimensionScores: true,
     bankSize: 500,
     bankSource: input.bankSource,
     dimensions: [...input.dimensions],
@@ -72,6 +74,9 @@ export function createExpandedAssessment(input: ExpandedAssessmentInput): TestDe
       targetCount: 500,
       domains
     }),
-    resultRanges: [...input.resultRanges]
+    resultRanges: input.resultRanges.map((range) => ({
+      ...range,
+      description: `${range.description} ${RESULT_DISCLAIMER}`
+    }))
   }
 }

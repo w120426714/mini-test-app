@@ -56,6 +56,7 @@ export function buildAssessmentBank({
     return {
       ...seed,
       id: questionId,
+      templateId: seed.templateId || seed.id,
       testId,
       title: index < seedQuestions.length
         ? seed.title

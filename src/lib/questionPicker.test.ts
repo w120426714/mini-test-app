@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { TestDefinition, TestQuestion } from '../types/test'
+import { tests } from '../data/tests'
 import { selectQuestionsForRun } from './questionPicker'
 
 function makeQuestion(index: number): TestQuestion {
@@ -30,6 +31,34 @@ const sampleTest: TestDefinition = {
 }
 
 describe('selectQuestionsForRun', () => {
+  it('skips duplicate templates and still fills the configured count when alternatives exist', () => {
+    const questions = [
+      { ...makeQuestion(1), templateId: 'template-a' },
+      { ...makeQuestion(2), templateId: 'template-a' },
+      { ...makeQuestion(3), templateId: 'template-b' },
+      { ...makeQuestion(4), templateId: 'template-c' }
+    ]
+
+    const selected = selectQuestionsForRun(
+      { ...sampleTest, questionCount: 3, questions },
+      () => 0.99
+    )
+
+    expect(selected).toHaveLength(3)
+    expect(new Set(selected.map((question) => question.templateId))).toEqual(
+      new Set(['template-a', 'template-b', 'template-c'])
+    )
+  })
+
+  it('selects eight distinct seed templates for an expanded assessment run', () => {
+    const expanded = tests.find((test) => test.id === 'focus-lab')
+
+    expect(expanded).toBeDefined()
+    const selected = selectQuestionsForRun(expanded as TestDefinition, () => 0.99)
+    expect(selected).toHaveLength(8)
+    expect(new Set(selected.map((question) => question.templateId)).size).toBe(8)
+  })
+
   it('selects the configured number of unique questions', () => {
     const questions = selectQuestionsForRun(sampleTest, () => 0.9)
 

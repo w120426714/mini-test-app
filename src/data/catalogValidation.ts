@@ -30,11 +30,15 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
     }
 
     const seenQuestionIds = new Set<string>()
+    const templateIds = new Set<string>()
+    const dimensionKeys = new Set(test.dimensions.map((dimension) => dimension.key))
     const coveredDomains = new Set<string>()
     const coveredDifficulties = new Set<number>()
     const normalizedTitles = new Set<string>()
 
     for (const question of test.questions) {
+      templateIds.add(question.templateId || question.id)
+
       if (seenQuestionIds.has(question.id)) {
         issues.push(`${test.id}: duplicate question id: ${question.id}`)
       } else {
@@ -58,11 +62,28 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
         issues.push(`${test.id}/${question.id}: invalid correctOptionId: ${question.correctOptionId}`)
       }
 
-      if (question.domain) {
+      if (!question.domain) {
+        issues.push(`${test.id}/${question.id}: missing domain`)
+      } else if (!dimensionKeys.has(question.domain)) {
+        issues.push(`${test.id}/${question.id}: unknown domain: ${question.domain}`)
+      } else {
         coveredDomains.add(question.domain)
+        const domainHasScore = question.options.some((option) => (
+          Object.prototype.hasOwnProperty.call(option.scores, question.domain)
+        ))
+        if (!domainHasScore) {
+          issues.push(`${test.id}/${question.id}: domain missing from option scores: ${question.domain}`)
+        }
       }
-      if (question.difficulty) {
-        coveredDifficulties.add(question.difficulty)
+
+      if (
+        Number.isInteger(question.difficulty)
+        && Number(question.difficulty) >= 1
+        && Number(question.difficulty) <= 5
+      ) {
+        coveredDifficulties.add(Number(question.difficulty))
+      } else {
+        issues.push(`${test.id}/${question.id}: invalid difficulty: ${String(question.difficulty)}`)
       }
       normalizedTitles.add(normalizeTitle(question.title))
     }
@@ -83,8 +104,24 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
       issues.push(`${test.id}: normalized title diversity below 10% (${normalizedTitles.size}/${test.questions.length})`)
     }
 
+    if (templateIds.size < test.questionCount) {
+      issues.push(`${test.id}: expected at least ${test.questionCount} unique question templates, received ${templateIds.size}`)
+    }
+
     const sortedRanges = [...test.resultRanges].sort((left, right) => left.min - right.min)
+    if (sortedRanges.length === 0) {
+      issues.push(`${test.id}: expected at least 1 result range`)
+      continue
+    }
+
+    const seenResultIds = new Set<string>()
     sortedRanges.forEach((range, index) => {
+      if (seenResultIds.has(range.id)) {
+        issues.push(`${test.id}: duplicate result range id: ${range.id}`)
+      } else {
+        seenResultIds.add(range.id)
+      }
+
       if (range.min > range.max) {
         issues.push(`${test.id}: inverted result range: ${range.id} (${range.min}-${range.max})`)
       }
@@ -94,6 +131,34 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
         issues.push(`${test.id}: discontinuous result ranges between ${previous.id} and ${range.id}`)
       }
     })
+
+    let reachableMin: number | undefined
+    let reachableMax: number | undefined
+    if (test.scoringModel === 'iq-standard') {
+      reachableMin = 55
+      reachableMax = 145
+    } else {
+      const optionTotals: number[] = []
+      for (const question of test.questions) {
+        for (const option of question.options) {
+          optionTotals.push(Object.values(option.scores).reduce((total, score) => total + score, 0))
+        }
+      }
+      if (optionTotals.length > 0) {
+        reachableMin = Math.min(...optionTotals) * test.questionCount
+        reachableMax = Math.max(...optionTotals) * test.questionCount
+      }
+    }
+
+    const coveredMin = sortedRanges[0].min
+    const coveredMax = sortedRanges[sortedRanges.length - 1].max
+    if (
+      reachableMin !== undefined
+      && reachableMax !== undefined
+      && (coveredMin > reachableMin || coveredMax < reachableMax)
+    ) {
+      issues.push(`${test.id}: result ranges do not cover reachable scores ${reachableMin}-${reachableMax} (covered ${coveredMin}-${coveredMax})`)
+    }
   }
 
   return issues

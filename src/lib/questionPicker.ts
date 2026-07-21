@@ -13,7 +13,31 @@ export function selectQuestionsForRun(
     return selectBalancedQuestions(test.questions, desiredCount, random)
   }
 
-  return shuffle(test.questions, random).slice(0, desiredCount)
+  return selectUniqueTemplates(shuffle(test.questions, random), desiredCount)
+}
+
+function templateKey(question: TestQuestion): string {
+  return question.templateId || question.id
+}
+
+function selectUniqueTemplates(questions: TestQuestion[], desiredCount: number): TestQuestion[] {
+  const selected: TestQuestion[] = []
+  const usedIds = new Set<string>()
+  const usedTemplateIds = new Set<string>()
+
+  for (const question of questions) {
+    const templateId = templateKey(question)
+    if (selected.length >= desiredCount) {
+      break
+    }
+    if (!usedIds.has(question.id) && !usedTemplateIds.has(templateId)) {
+      selected.push(question)
+      usedIds.add(question.id)
+      usedTemplateIds.add(templateId)
+    }
+  }
+
+  return selected
 }
 
 function shuffle<T>(items: T[], random: RandomSource): T[] {
@@ -47,6 +71,7 @@ function selectBalancedQuestions(
   )
   const selected: TestQuestion[] = []
   const usedIds = new Set<string>()
+  const usedTemplateIds = new Set<string>()
 
   while (selected.length < desiredCount && shuffledGroups.some((group) => group.length > 0)) {
     for (const group of shuffledGroups) {
@@ -56,9 +81,16 @@ function selectBalancedQuestions(
 
       const question = group.shift()
 
-      if (question && !usedIds.has(question.id)) {
+      const questionTemplate = question && templateKey(question)
+      if (
+        question
+        && questionTemplate
+        && !usedIds.has(question.id)
+        && !usedTemplateIds.has(questionTemplate)
+      ) {
         selected.push(question)
         usedIds.add(question.id)
+        usedTemplateIds.add(questionTemplate)
       }
     }
   }

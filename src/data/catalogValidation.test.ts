@@ -51,6 +51,7 @@ function expectIssue(test: TestDefinition, issue: string) {
 }
 
 describe('published assessment catalog', () => {
+  const resultDisclaimer = '仅供娱乐和自我反思，不构成临床、财务或职业诊断'
   const expandedTestIds = [
     'focus-lab',
     'social-signal',
@@ -91,6 +92,30 @@ describe('published assessment catalog', () => {
     expect(expanded).toHaveLength(6)
     expect(expanded.every((test) => test.bankSource?.includes('原创'))).toBe(true)
     expect(expanded.every((test) => test.bankSource?.includes('非临床'))).toBe(true)
+  })
+
+  it('adds an explicit entertainment and non-diagnostic disclaimer to every expanded result', () => {
+    const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
+
+    expect(expanded.every((test) => test.resultRanges.every((range) => (
+      range.description.includes(resultDisclaimer)
+    )))).toBe(true)
+  })
+
+  it('enables normalized dimension scores for every expanded assessment', () => {
+    const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
+    expect(expanded.every((test) => test.normalizeDimensionScores === true)).toBe(true)
+  })
+
+  it('uses continuous expanded result ranges covering raw sum scores 0 through 24', () => {
+    const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
+
+    expect(expanded.every((test) => {
+      const ranges = [...test.resultRanges].sort((left, right) => left.min - right.min)
+      return ranges[0].min === 0
+        && ranges[ranges.length - 1].max === 24
+        && ranges.every((range, index) => index === 0 || range.min === ranges[index - 1].max + 1)
+    })).toBe(true)
   })
 })
 
@@ -141,7 +166,24 @@ describe('validateCatalog', () => {
     expectIssue(makeValidTest({ questions }), 'sample-test/sample-q-1: invalid correctOptionId: missing-option')
   })
 
-  it('reports inverted and discontinuous result ranges', () => {
+  it('reports an empty result range list', () => {
+    expectIssue(
+      makeValidTest({ resultRanges: [] }),
+      'sample-test: expected at least 1 result range'
+    )
+  })
+
+  it('reports duplicate result range ids', () => {
+    const resultRanges = makeValidTest().resultRanges
+    resultRanges[1] = { ...resultRanges[1], id: resultRanges[0].id }
+
+    expectIssue(
+      makeValidTest({ resultRanges }),
+      'sample-test: duplicate result range id: low'
+    )
+  })
+
+  it('reports an inverted result range', () => {
     const test = makeValidTest({
       resultRanges: [
         { id: 'low', min: 0, max: 9, title: 'Low', tagline: 'Low', description: 'Low', suggestions: ['One', 'Two'] },
@@ -150,10 +192,99 @@ describe('validateCatalog', () => {
       ]
     })
 
-    expect(validateCatalog([test])).toEqual(expect.arrayContaining([
-      'sample-test: inverted result range: backward (15-10)',
-      'sample-test: discontinuous result ranges between low and backward'
-    ]))
+    expectIssue(test, 'sample-test: inverted result range: backward (15-10)')
+  })
+
+  it('reports discontinuous result ranges', () => {
+    const resultRanges = makeValidTest().resultRanges
+    resultRanges[1] = { ...resultRanges[1], min: 11 }
+
+    expectIssue(
+      makeValidTest({ resultRanges }),
+      'sample-test: discontinuous result ranges between low and mid'
+    )
+  })
+
+  it('reports sum result ranges that miss the reachable minimum score', () => {
+    const resultRanges = makeValidTest().resultRanges
+    resultRanges[0] = { ...resultRanges[0], min: 9 }
+
+    expectIssue(
+      makeValidTest({ resultRanges }),
+      'sample-test: result ranges do not cover reachable scores 8-24 (covered 9-30)'
+    )
+  })
+
+  it('reports sum result ranges that miss the reachable maximum score', () => {
+    const resultRanges = makeValidTest().resultRanges
+    resultRanges[2] = { ...resultRanges[2], max: 23 }
+
+    expectIssue(
+      makeValidTest({ resultRanges }),
+      'sample-test: result ranges do not cover reachable scores 8-24 (covered 0-23)'
+    )
+  })
+
+  it('requires iq-standard result ranges to cover 55 through 145', () => {
+    expectIssue(
+      makeValidTest({
+        scoringModel: 'iq-standard',
+        resultRanges: [
+          { id: 'low', min: 56, max: 89, title: 'Low', tagline: 'Low', description: 'Low', suggestions: ['One', 'Two'] },
+          { id: 'mid', min: 90, max: 114, title: 'Mid', tagline: 'Mid', description: 'Mid', suggestions: ['One', 'Two'] },
+          { id: 'high', min: 115, max: 145, title: 'High', tagline: 'High', description: 'High', suggestions: ['One', 'Two'] }
+        ]
+      }),
+      'sample-test: result ranges do not cover reachable scores 55-145 (covered 56-145)'
+    )
+  })
+
+  it('reports a question with no domain', () => {
+    const questions = makeValidTest().questions
+    questions[0] = { ...questions[0], domain: undefined }
+    expectIssue(makeValidTest({ questions }), 'sample-test/sample-q-1: missing domain')
+  })
+
+  it('reports a question whose domain is not a configured dimension', () => {
+    const questions = makeValidTest().questions
+    questions[0] = { ...questions[0], domain: 'unknown' }
+    expectIssue(makeValidTest({ questions }), 'sample-test/sample-q-1: unknown domain: unknown')
+  })
+
+  it('reports a question whose domain is absent from all option score keys', () => {
+    const questions = makeValidTest().questions
+    questions[0] = {
+      ...questions[0],
+      options: questions[0].options.map((option) => ({ ...option, scores: { memory: 1 } }))
+    }
+    expectIssue(makeValidTest({ questions }), 'sample-test/sample-q-1: domain missing from option scores: focus')
+  })
+
+  it('reports a question with no difficulty', () => {
+    const questions = makeValidTest().questions
+    questions[0] = { ...questions[0], difficulty: undefined }
+    expectIssue(makeValidTest({ questions }), 'sample-test/sample-q-1: invalid difficulty: undefined')
+  })
+
+  it.each([0, 6])('reports difficulty %i outside the 1-5 range', (difficulty) => {
+    const questions = makeValidTest().questions
+    questions[0] = {
+      ...questions[0],
+      difficulty: difficulty as TestQuestion['difficulty']
+    }
+    expectIssue(makeValidTest({ questions }), `sample-test/sample-q-1: invalid difficulty: ${difficulty}`)
+  })
+
+  it('reports too few unique templates for one run', () => {
+    const questions = makeValidTest().questions.map((question, index) => ({
+      ...question,
+      templateId: `template-${index % 7}`
+    }))
+
+    expectIssue(
+      makeValidTest({ questions }),
+      'sample-test: expected at least 8 unique question templates, received 7'
+    )
   })
 
   it('reports configured dimensions that no question covers', () => {

@@ -33,7 +33,27 @@ export function calculateScore(test: TestDefinition, answers: AnswerMap): ScoreR
 
   const score = Object.values(dimensionScores).reduce((total, value) => total + value, 0)
 
-  return { score, dimensionScores }
+  if (!test.normalizeDimensionScores) {
+    return { score, dimensionScores }
+  }
+
+  const normalizedDimensionScores = test.dimensions.reduce<Record<string, number>>((acc, dimension) => {
+    const maximum = test.questions.reduce((total, question) => {
+      const questionMaximum = Math.max(
+        0,
+        ...question.options.map((option) => option.scores[dimension.key] || 0)
+      )
+      return total + questionMaximum
+    }, 0)
+    const rawScore = dimensionScores[dimension.key] || 0
+
+    acc[dimension.key] = maximum === 0
+      ? 0
+      : Math.min(100, Math.max(0, Math.round((rawScore / maximum) * 100)))
+    return acc
+  }, {})
+
+  return { score, dimensionScores: normalizedDimensionScores }
 }
 
 export function matchResultRange(test: TestDefinition, score: number) {
