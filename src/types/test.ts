@@ -1,5 +1,24 @@
 export type TestCategory = 'iq' | 'eq' | 'personality' | 'romance' | 'wealth' | 'workplace'
 
+export type ThemeName = 'almond' | 'mist' | 'dusk'
+
+export type DurationFilter = 'all' | 'quick' | 'standard'
+
+export interface CatalogFilters {
+  query: string
+  category: TestCategory | 'all'
+  duration: DurationFilter
+}
+
+export interface QuizSession {
+  version: 1
+  testId: string
+  questionIds: string[]
+  answers: Record<string, string>
+  currentIndex: number
+  updatedAt: string
+}
+
 export interface TestDimension {
   key: string
   label: string
