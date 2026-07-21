@@ -30,6 +30,7 @@ function isQuizSession(value: unknown, testId: string): value is QuizSession {
     !Array.isArray(session.questionIds) ||
     session.questionIds.length === 0 ||
     !session.questionIds.every((questionId) => typeof questionId === 'string') ||
+    new Set(session.questionIds).size !== session.questionIds.length ||
     !isPlainStringRecord(session.answers) ||
     !Number.isInteger(session.currentIndex) ||
     typeof session.updatedAt !== 'string'

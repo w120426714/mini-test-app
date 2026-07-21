@@ -63,6 +63,7 @@ describe('quiz session storage', () => {
     ['version is invalid', { ...session, version: 2 }],
     ['test id does not match the query', { ...session, testId: 'other-test' }],
     ['question ids contain a non-string', { ...session, questionIds: ['q-1', 2] }],
+    ['question ids contain duplicates', { ...session, questionIds: ['q-1', 'q-1'] }],
     ['question ids are empty', { ...session, questionIds: [], currentIndex: 0 }],
     ['answers are an array', { ...session, answers: [] }],
     ['answers are null', { ...session, answers: null }],
