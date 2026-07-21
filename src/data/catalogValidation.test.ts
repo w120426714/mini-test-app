@@ -121,6 +121,7 @@ describe('published assessment catalog', () => {
   it('publishes at least forty semantic templates for every expanded assessment', () => {
     const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
 
+    expect(expanded.every((test) => test.minimumSemanticTemplates === 40)).toBe(true)
     expect(expanded.every((test) => (
       new Set(test.questions.map((question) => question.templateId || question.id)).size >= 40
     ))).toBe(true)
@@ -295,16 +296,27 @@ describe('validateCatalog', () => {
     )
   })
 
-  it('requires forty unique templates for an expanded assessment', () => {
+  it('requires the explicitly configured number of semantic templates', () => {
     const questions = makeValidTest().questions.map((question, index) => ({
       ...question,
       templateId: `expanded-template-${index % 39}`
     }))
 
     expectIssue(
-      makeValidTest({ questions, normalizeDimensionScores: true }),
-      'sample-test: expected at least 40 unique question templates for expanded assessment, received 39'
+      makeValidTest({ questions, minimumSemanticTemplates: 40 }),
+      'sample-test: expected at least 40 unique question templates, received 39'
     )
+  })
+
+  it('does not infer semantic-template policy from score normalization', () => {
+    const questions = makeValidTest().questions.map((question, index) => ({
+      ...question,
+      templateId: `template-${index % 8}`
+    }))
+
+    expect(validateCatalog([
+      makeValidTest({ questions, normalizeDimensionScores: true })
+    ])).toEqual([])
   })
 
   it('reports configured dimensions that no question covers', () => {

@@ -1,4 +1,4 @@
-/// <reference types="@tarojs/taro" />
+/// <reference path="./taro-weapp.d.ts" />
 
 declare module '*.png';
 declare module '*.gif';
@@ -25,5 +25,4 @@ declare namespace NodeJS {
     TARO_APP_ID: string
   }
 }
-
 

@@ -72,6 +72,7 @@ export interface TestDefinition {
   coverTone: 'forest' | 'sunset' | 'ocean'
   scoringModel?: 'sum' | 'iq-standard'
   normalizeDimensionScores?: boolean
+  minimumSemanticTemplates?: number
   bankSource?: string
   dimensions: TestDimension[]
   questions: TestQuestion[]

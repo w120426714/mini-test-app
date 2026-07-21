@@ -2,6 +2,9 @@ import type { TestDefinition, TestQuestion } from '../types/test'
 
 export type RandomSource = () => number
 
+const MAX_SELECTION_SEARCH_STATES = 50_000
+const MAX_DOMAIN_QUOTA_CONFIGURATIONS = 512
+
 export function selectQuestionsForRun(
   test: TestDefinition,
   random: RandomSource = Math.random
@@ -18,6 +21,24 @@ export function selectQuestionsForRun(
 
 function templateKey(question: TestQuestion): string {
   return question.templateId || question.id
+}
+
+export function compressSelectionCandidates(questions: TestQuestion[]): TestQuestion[] {
+  const seenSignatures = new Set<string>()
+
+  return questions.filter((question) => {
+    const signature = JSON.stringify([
+      templateKey(question),
+      question.difficulty ?? null,
+      question.domain ?? null
+    ])
+    if (seenSignatures.has(signature)) {
+      return false
+    }
+
+    seenSignatures.add(signature)
+    return true
+  })
 }
 
 function selectUniqueTemplates(questions: TestQuestion[], desiredCount: number): TestQuestion[] {
@@ -66,125 +87,189 @@ function selectBalancedQuestions(
   }, {})
 
   const domainKeys = shuffle(Object.keys(groups), random)
-  const shuffledGroups = domainKeys.map((key) => shuffle(groups[key], random))
-  const selected: TestQuestion[] = []
-  const usedIds = new Set<string>()
-  const usedTemplateIds = new Set<string>()
-  const domainCounts = domainKeys.map(() => 0)
+  const shuffledGroups = domainKeys.map((key) => (
+    compressSelectionCandidates(shuffle(groups[key], random))
+  ))
 
-  const difficultyOrder = shuffle(
-    [...new Set(questions
+  const availableDifficultyCount = new Set(
+    shuffledGroups
+      .reduce<TestQuestion[]>((allQuestions, group) => allQuestions.concat(group), [])
       .map((question) => question.difficulty)
       .filter((difficulty): difficulty is NonNullable<TestQuestion['difficulty']> => (
         typeof difficulty === 'number' && Number.isInteger(difficulty)
-      )))],
-    random
-  )
-  const requiredDifficultyCount = Math.min(3, desiredCount, difficultyOrder.length)
+      ))
+  ).size
+  const requiredDifficultyCount = Math.min(3, desiredCount, availableDifficultyCount)
 
-  function acceptQuestion(question: TestQuestion, groupIndex: number): void {
-    selected.push(question)
-    usedIds.add(question.id)
-    usedTemplateIds.add(templateKey(question))
-    domainCounts[groupIndex] += 1
+  const quotaConfigurations = buildBalancedDomainQuotas(domainKeys.length, desiredCount)
+  for (let difficultyTarget = requiredDifficultyCount; difficultyTarget >= 0; difficultyTarget -= 1) {
+    for (const quotas of quotaConfigurations) {
+      const selection = findConstrainedSelection(shuffledGroups, quotas, difficultyTarget)
+      if (selection) {
+        return selection
+      }
+    }
   }
 
-  function findDifficultyRepresentatives(targetCount: number) {
-    const representatives: Array<{ question: TestQuestion; groupIndex: number }> = []
-    const representativeIds = new Set<string>()
-    const representativeTemplates = new Set<string>()
-    const representativeDomainCounts = domainKeys.map(() => 0)
+  return selectBalancedFallback(shuffledGroups, desiredCount)
+}
 
-    function search(difficultyIndex: number): boolean {
-      if (representatives.length === targetCount) {
-        return true
-      }
+function buildBalancedDomainQuotas(domainCount: number, desiredCount: number): number[][] {
+  const baseCount = Math.floor(desiredCount / domainCount)
+  const extraCount = desiredCount % domainCount
+  const quotas = Array.from({ length: domainCount }, () => baseCount)
+  const configurations: number[][] = []
 
-      const needed = targetCount - representatives.length
-      if (difficultyOrder.length - difficultyIndex < needed) {
-        return false
-      }
-
-      const difficulty = difficultyOrder[difficultyIndex]
-      const groupIndexes = shuffledGroups
-        .map((_, index) => index)
-        .sort((left, right) => (
-          representativeDomainCounts[left] - representativeDomainCounts[right] || left - right
-        ))
-
-      for (const groupIndex of groupIndexes) {
-        for (const question of shuffledGroups[groupIndex]) {
-          const templateId = templateKey(question)
-          if (
-            question.difficulty !== difficulty
-            || representativeIds.has(question.id)
-            || representativeTemplates.has(templateId)
-          ) {
-            continue
-          }
-
-          representatives.push({ question, groupIndex })
-          representativeIds.add(question.id)
-          representativeTemplates.add(templateId)
-          representativeDomainCounts[groupIndex] += 1
-
-          if (search(difficultyIndex + 1)) {
-            return true
-          }
-
-          representatives.pop()
-          representativeIds.delete(question.id)
-          representativeTemplates.delete(templateId)
-          representativeDomainCounts[groupIndex] -= 1
-        }
-      }
-
-      return search(difficultyIndex + 1)
+  function chooseExtraDomains(startIndex: number, remaining: number): void {
+    if (configurations.length >= MAX_DOMAIN_QUOTA_CONFIGURATIONS) {
+      return
+    }
+    if (remaining === 0) {
+      configurations.push([...quotas])
+      return
     }
 
-    return search(0) ? representatives : []
+    for (let index = startIndex; index <= domainCount - remaining; index += 1) {
+      quotas[index] += 1
+      chooseExtraDomains(index + 1, remaining - 1)
+      quotas[index] -= 1
+    }
   }
 
-  function takeQuestion(requiredDifficulty?: number): boolean {
-    const groupIndexes = shuffledGroups
-      .map((_, index) => index)
-      .sort((left, right) => domainCounts[left] - domainCounts[right] || left - right)
+  chooseExtraDomains(0, extraCount)
+  return configurations
+}
 
-    for (const groupIndex of groupIndexes) {
-      const group = shuffledGroups[groupIndex]
-      const questionIndex = group.findIndex((question) => {
-        const templateId = templateKey(question)
-        return (requiredDifficulty === undefined || question.difficulty === requiredDifficulty)
-          && !usedIds.has(question.id)
-          && !usedTemplateIds.has(templateId)
+function findConstrainedSelection(
+  groups: TestQuestion[][],
+  quotas: number[],
+  difficultyTarget: number
+): TestQuestion[] | undefined {
+  const selected: TestQuestion[] = []
+  const selectedDifficulties = new Set<number>()
+  const usedIds = new Set<string>()
+  const usedTemplateIds = new Set<string>()
+  const remainingQuotas = [...quotas]
+  const nextIndexes = groups.map(() => 0)
+  const desiredCount = quotas.reduce((total, quota) => total + quota, 0)
+  let visitedStates = 0
+
+  function eligibleIndexes(groupIndex: number): number[] {
+    const eligible: number[] = []
+    for (let index = nextIndexes[groupIndex]; index < groups[groupIndex].length; index += 1) {
+      const question = groups[groupIndex][index]
+      if (!usedIds.has(question.id) && !usedTemplateIds.has(templateKey(question))) {
+        eligible.push(index)
+      }
+    }
+    return eligible
+  }
+
+  function search(): boolean {
+    visitedStates += 1
+    if (visitedStates > MAX_SELECTION_SEARCH_STATES) {
+      return false
+    }
+    if (selected.length === desiredCount) {
+      return selectedDifficulties.size >= difficultyTarget
+    }
+
+    const candidatesByGroup = groups.map((_, groupIndex) => (
+      remainingQuotas[groupIndex] > 0 ? eligibleIndexes(groupIndex) : []
+    ))
+    for (let groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
+      if (candidatesByGroup[groupIndex].length < remainingQuotas[groupIndex]) {
+        return false
+      }
+    }
+
+    const possibleDifficulties = new Set(selectedDifficulties)
+    candidatesByGroup.forEach((candidateIndexes, groupIndex) => {
+      candidateIndexes.forEach((candidateIndex) => {
+        const difficulty = groups[groupIndex][candidateIndex].difficulty
+        if (difficulty !== undefined) {
+          possibleDifficulties.add(difficulty)
+        }
       })
+    })
+    if (possibleDifficulties.size < difficultyTarget) {
+      return false
+    }
 
-      if (questionIndex >= 0) {
-        const [question] = group.splice(questionIndex, 1)
-        acceptQuestion(question, groupIndex)
+    const groupIndex = remainingQuotas
+      .map((remaining, index) => ({ index, remaining, candidates: candidatesByGroup[index].length }))
+      .filter(({ remaining }) => remaining > 0)
+      .sort((left, right) => (
+        left.candidates / left.remaining - right.candidates / right.remaining || left.index - right.index
+      ))[0].index
+
+    for (const candidateIndex of candidatesByGroup[groupIndex]) {
+      const question = groups[groupIndex][candidateIndex]
+      const templateId = templateKey(question)
+      const previousNextIndex = nextIndexes[groupIndex]
+      const previousDifficultyCount = question.difficulty === undefined
+        ? 0
+        : selected.filter((item) => item.difficulty === question.difficulty).length
+
+      selected.push(question)
+      usedIds.add(question.id)
+      usedTemplateIds.add(templateId)
+      if (question.difficulty !== undefined) {
+        selectedDifficulties.add(question.difficulty)
+      }
+      remainingQuotas[groupIndex] -= 1
+      nextIndexes[groupIndex] = candidateIndex + 1
+
+      if (search()) {
         return true
       }
+
+      selected.pop()
+      usedIds.delete(question.id)
+      usedTemplateIds.delete(templateId)
+      if (question.difficulty !== undefined && previousDifficultyCount === 0) {
+        selectedDifficulties.delete(question.difficulty)
+      }
+      remainingQuotas[groupIndex] += 1
+      nextIndexes[groupIndex] = previousNextIndex
     }
 
     return false
   }
 
-  let difficultyRepresentatives: Array<{ question: TestQuestion; groupIndex: number }> = []
-  for (let targetCount = requiredDifficultyCount; targetCount > 0; targetCount -= 1) {
-    difficultyRepresentatives = findDifficultyRepresentatives(targetCount)
-    if (difficultyRepresentatives.length > 0) {
+  return search() ? selected : undefined
+}
+
+function selectBalancedFallback(groups: TestQuestion[][], desiredCount: number): TestQuestion[] {
+  const selected: TestQuestion[] = []
+  const usedIds = new Set<string>()
+  const usedTemplateIds = new Set<string>()
+  const domainCounts = groups.map(() => 0)
+
+  while (selected.length < desiredCount) {
+    const groupIndexes = groups
+      .map((_, index) => index)
+      .sort((left, right) => domainCounts[left] - domainCounts[right] || left - right)
+    let found = false
+
+    for (const groupIndex of groupIndexes) {
+      const questionIndex = groups[groupIndex].findIndex((question) => (
+        !usedIds.has(question.id) && !usedTemplateIds.has(templateKey(question))
+      ))
+      if (questionIndex >= 0) {
+        const [question] = groups[groupIndex].splice(questionIndex, 1)
+        selected.push(question)
+        usedIds.add(question.id)
+        usedTemplateIds.add(templateKey(question))
+        domainCounts[groupIndex] += 1
+        found = true
+        break
+      }
+    }
+
+    if (!found) {
       break
     }
-  }
-
-  for (const { question, groupIndex } of difficultyRepresentatives) {
-    const questionIndex = shuffledGroups[groupIndex].indexOf(question)
-    shuffledGroups[groupIndex].splice(questionIndex, 1)
-    acceptQuestion(question, groupIndex)
-  }
-
-  while (selected.length < desiredCount && takeQuestion()) {
-    // Selection happens in takeQuestion; loop only fills the remaining slots.
   }
 
   return selected

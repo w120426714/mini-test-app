@@ -105,10 +105,12 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
       issues.push(`${test.id}: normalized title diversity below 10% (${normalizedTitles.size}/${test.questions.length})`)
     }
 
-    const minimumTemplateCount = test.normalizeDimensionScores ? 40 : test.questionCount
+    const minimumTemplateCount = Math.max(
+      test.questionCount,
+      test.minimumSemanticTemplates ?? 0
+    )
     if (templateIds.size < minimumTemplateCount) {
-      const assessmentLabel = test.normalizeDimensionScores ? ' for expanded assessment' : ''
-      issues.push(`${test.id}: expected at least ${minimumTemplateCount} unique question templates${assessmentLabel}, received ${templateIds.size}`)
+      issues.push(`${test.id}: expected at least ${minimumTemplateCount} unique question templates, received ${templateIds.size}`)
     }
 
     const sortedRanges = [...test.resultRanges].sort((left, right) => left.min - right.min)

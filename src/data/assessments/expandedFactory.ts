@@ -65,6 +65,7 @@ export function createExpandedAssessment(input: ExpandedAssessmentInput): TestDe
     coverTone: input.coverTone,
     scoringModel: 'sum',
     normalizeDimensionScores: true,
+    minimumSemanticTemplates: 40,
     bankSize: 500,
     bankSource: input.bankSource,
     dimensions: [...input.dimensions],

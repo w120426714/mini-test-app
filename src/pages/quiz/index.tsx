@@ -28,6 +28,8 @@ export default function Quiz() {
     )
   }
 
+  const activeTest = test
+
   const question = runQuestions[index]
 
   function selectOption(optionId: string) {
@@ -39,15 +41,15 @@ export default function Quiz() {
       return
     }
 
-    const scoreResult = calculateScore({ ...test, questions: runQuestions }, nextAnswers)
-    const result = matchResultRange(test, scoreResult.score)
+    const scoreResult = calculateScore({ ...activeTest, questions: runQuestions }, nextAnswers)
+    const result = matchResultRange(activeTest, scoreResult.score)
 
     if (!result) {
       showToast('结果生成失败，请重新测试')
       return
     }
 
-    const history = createHistoryItem(test, result.id, scoreResult)
+    const history = createHistoryItem(activeTest, result.id, scoreResult)
     const saved = saveHistoryItem(history)
 
     if (!saved) {

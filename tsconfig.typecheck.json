@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@tarojs/components": ["./types/taro-components.d.ts"],
+      "@tarojs/taro": ["./types/taro-weapp.d.ts"],
+      "@tarojs/cli": ["./types/taro-cli.d.ts"],
+      "tsconfig-paths-webpack-plugin": ["./types/tsconfig-paths-webpack-plugin.d.ts"]
+    }
+  }
+}

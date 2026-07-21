@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { TestDefinition, TestQuestion } from '../types/test'
+import { validateCatalog } from '../data/catalogValidation'
 import { tests } from '../data/tests'
-import { selectQuestionsForRun } from './questionPicker'
+import { compressSelectionCandidates, selectQuestionsForRun } from './questionPicker'
 
 function makeQuestion(index: number): TestQuestion {
   return {
@@ -20,6 +21,27 @@ function createLcg(seed: number) {
   return () => {
     state = (Math.imul(1103515245, state) + 12345) & 0x7fffffff
     return state / 0x80000000
+  }
+}
+
+function makeCatalogQuestion(
+  index: number,
+  domain: string,
+  difficulty: 1 | 2 | 3 | 4 | 5,
+  templateId: string
+): TestQuestion {
+  const id = `joint-q-${index}`
+  return {
+    id,
+    templateId,
+    testId: 'joint-balance',
+    title: `Joint balance scenario ${index}`,
+    domain,
+    difficulty,
+    options: [
+      { id: `${id}-a`, label: 'A', scores: { [domain]: 1 } },
+      { id: `${id}-b`, label: 'B', scores: { [domain]: 2 } }
+    ]
   }
 }
 
@@ -68,7 +90,7 @@ describe('selectQuestionsForRun', () => {
   })
 
   it('covers multiple difficulties for every expanded assessment with deterministic randomness', () => {
-    const expandedTests = tests.filter((test) => test.normalizeDimensionScores)
+    const expandedTests = tests.filter((test) => test.minimumSemanticTemplates === 40)
 
     expect(expandedTests).toHaveLength(6)
     for (const test of expandedTests) {
@@ -82,7 +104,7 @@ describe('selectQuestionsForRun', () => {
   })
 
   it('guarantees three difficulties for expanded runs across deterministic LCG sequences', () => {
-    const expandedTests = tests.filter((test) => test.normalizeDimensionScores)
+    const expandedTests = tests.filter((test) => test.minimumSemanticTemplates === 40)
 
     for (const seed of [1760, 369]) {
       for (const test of expandedTests) {
@@ -152,6 +174,69 @@ describe('selectQuestionsForRun', () => {
     expect(selected).toHaveLength(3)
     expect(new Set(selected.map((question) => question.templateId)).size).toBe(3)
     expect(new Set(selected.map((question) => question.difficulty)).size).toBe(3)
+  })
+
+  it('jointly satisfies domain balance and difficulty diversity for a valid 500-question bank', () => {
+    const questions = [
+      makeCatalogQuestion(1, 'logic', 1, 'shared-with-memory'),
+      makeCatalogQuestion(2, 'logic', 1, 'logic-one'),
+      makeCatalogQuestion(3, 'memory', 2, 'shared-with-memory'),
+      makeCatalogQuestion(4, 'spatial', 3, 'spatial-three'),
+      makeCatalogQuestion(5, 'spatial', 2, 'spatial-two'),
+      makeCatalogQuestion(6, 'logic', 3, 'logic-three'),
+      ...Array.from({ length: 494 }, (_, offset) => {
+        const index = offset + 7
+        return makeCatalogQuestion(
+          index,
+          offset % 2 === 0 ? 'logic' : 'spatial',
+          offset % 2 === 0 ? 4 : 5,
+          `filler-${index}`
+        )
+      })
+    ]
+    const test: TestDefinition = {
+      ...sampleTest,
+      id: 'joint-balance',
+      questionCount: 4,
+      bankSize: 500,
+      bankSource: 'Original non-clinical regression fixture',
+      dimensions: [
+        { key: 'logic', label: 'Logic' },
+        { key: 'memory', label: 'Memory' },
+        { key: 'spatial', label: 'Spatial' }
+      ],
+      questions,
+      resultRanges: [
+        { id: 'all', min: 0, max: 8, title: 'All', tagline: 'All', description: 'All', suggestions: ['One', 'Two'] }
+      ]
+    }
+
+    expect(validateCatalog([test])).toEqual([])
+
+    const selected = selectQuestionsForRun(test, () => 0.99)
+    const domainCounts = test.dimensions.map(({ key }) => (
+      selected.filter((question) => question.domain === key).length
+    ))
+
+    expect(selected).toHaveLength(4)
+    expect(new Set(selected.map((question) => question.id)).size).toBe(4)
+    expect(new Set(selected.map((question) => question.templateId)).size).toBe(4)
+    expect(new Set(selected.map((question) => question.difficulty)).size).toBeGreaterThanOrEqual(3)
+    expect(domainCounts.sort()).toEqual([1, 1, 2])
+  })
+
+  it('compresses clone candidates by template, difficulty, and domain before search', () => {
+    const clones = Array.from({ length: 500 }, (_, index) => ({
+      ...makeQuestion(index + 1),
+      templateId: `template-${index % 2}`,
+      domain: `domain-${index % 3}`,
+      difficulty: ((index % 2) + 1) as 1 | 2
+    }))
+
+    const compressed = compressSelectionCandidates(clones)
+
+    expect(compressed).toHaveLength(6)
+    expect(new Set(compressed.map((question) => question.id)).size).toBe(6)
   })
 
   it('selects the configured number of unique questions', () => {
