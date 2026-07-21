@@ -59,6 +59,20 @@ describe('selectQuestionsForRun', () => {
     expect(new Set(selected.map((question) => question.templateId)).size).toBe(8)
   })
 
+  it('covers multiple difficulties for every expanded assessment with deterministic randomness', () => {
+    const expandedTests = tests.filter((test) => test.normalizeDimensionScores)
+
+    expect(expandedTests).toHaveLength(6)
+    for (const test of expandedTests) {
+      const selected = selectQuestionsForRun(test, () => 0.99)
+      const difficulties = new Set(selected.map((question) => question.difficulty))
+
+      expect(selected).toHaveLength(test.questionCount)
+      expect(difficulties.size, test.id).toBeGreaterThanOrEqual(3)
+      expect(difficulties, test.id).not.toEqual(new Set([1]))
+    }
+  })
+
   it('selects the configured number of unique questions', () => {
     const questions = selectQuestionsForRun(sampleTest, () => 0.9)
 

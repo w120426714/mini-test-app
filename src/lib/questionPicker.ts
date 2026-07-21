@@ -66,9 +66,7 @@ function selectBalancedQuestions(
   }, {})
 
   const domainKeys = shuffle(Object.keys(groups), random)
-  const shuffledGroups = domainKeys.map((key) =>
-    shuffle(groups[key], random).sort((left, right) => (left.difficulty || 3) - (right.difficulty || 3))
-  )
+  const shuffledGroups = domainKeys.map((key) => shuffle(groups[key], random))
   const selected: TestQuestion[] = []
   const usedIds = new Set<string>()
   const usedTemplateIds = new Set<string>()

@@ -7,6 +7,9 @@ export interface StandardScoreResult extends ScoreResult {
   accuracy: number
 }
 
+export const STANDARD_SCORE_MIN = 55
+export const STANDARD_SCORE_MAX = 145
+
 function itemWeight(question: TestQuestion) {
   const difficulty = question.difficulty || 3
   const discrimination = question.discrimination || 1
@@ -52,7 +55,12 @@ export function calculateStandardScore(test: TestDefinition, answers: AnswerMap)
   }
 
   const accuracy = totalWeight > 0 ? earnedWeight / totalWeight : 0
-  const standardScore = Math.round(clamp(55 + Math.sqrt(accuracy) * 90, 55, 145))
+  const scoreSpan = STANDARD_SCORE_MAX - STANDARD_SCORE_MIN
+  const standardScore = Math.round(clamp(
+    STANDARD_SCORE_MIN + Math.sqrt(accuracy) * scoreSpan,
+    STANDARD_SCORE_MIN,
+    STANDARD_SCORE_MAX
+  ))
 
   return {
     score: standardScore,

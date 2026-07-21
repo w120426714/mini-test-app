@@ -1,4 +1,5 @@
 import type { TestDefinition } from '../types/test'
+import { STANDARD_SCORE_MAX, STANDARD_SCORE_MIN } from '../lib/standardScoring'
 
 const REQUIRED_BANK_SIZE = 500
 const MINIMUM_TITLE_DIVERSITY = 0.1
@@ -104,8 +105,10 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
       issues.push(`${test.id}: normalized title diversity below 10% (${normalizedTitles.size}/${test.questions.length})`)
     }
 
-    if (templateIds.size < test.questionCount) {
-      issues.push(`${test.id}: expected at least ${test.questionCount} unique question templates, received ${templateIds.size}`)
+    const minimumTemplateCount = test.normalizeDimensionScores ? 40 : test.questionCount
+    if (templateIds.size < minimumTemplateCount) {
+      const assessmentLabel = test.normalizeDimensionScores ? ' for expanded assessment' : ''
+      issues.push(`${test.id}: expected at least ${minimumTemplateCount} unique question templates${assessmentLabel}, received ${templateIds.size}`)
     }
 
     const sortedRanges = [...test.resultRanges].sort((left, right) => left.min - right.min)
@@ -135,8 +138,8 @@ export function validateCatalog(tests: TestDefinition[]): string[] {
     let reachableMin: number | undefined
     let reachableMax: number | undefined
     if (test.scoringModel === 'iq-standard') {
-      reachableMin = 55
-      reachableMax = 145
+      reachableMin = STANDARD_SCORE_MIN
+      reachableMax = STANDARD_SCORE_MAX
     } else {
       const optionTotals: number[] = []
       for (const question of test.questions) {

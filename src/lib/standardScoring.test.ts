@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { TestDefinition } from '../types/test'
-import { calculateStandardScore } from './standardScoring'
+import {
+  calculateStandardScore,
+  STANDARD_SCORE_MAX,
+  STANDARD_SCORE_MIN
+} from './standardScoring'
 
 const iqFixture = {
   id: 'iq-fixture',
@@ -71,6 +75,10 @@ const iqFixture = {
 } as TestDefinition
 
 describe('calculateStandardScore', () => {
+  it('exports the shared standard score range', () => {
+    expect([STANDARD_SCORE_MIN, STANDARD_SCORE_MAX]).toEqual([55, 145])
+  })
+
   it('maps weighted correctness to a bounded IQ-like score', () => {
     const result = calculateStandardScore(iqFixture, {
       q1: 'q1-a',
@@ -86,4 +94,3 @@ describe('calculateStandardScore', () => {
     expect(result.score).toBeLessThan(115)
   })
 })
-

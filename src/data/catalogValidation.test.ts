@@ -117,6 +117,14 @@ describe('published assessment catalog', () => {
         && ranges.every((range, index) => index === 0 || range.min === ranges[index - 1].max + 1)
     })).toBe(true)
   })
+
+  it('publishes at least forty semantic templates for every expanded assessment', () => {
+    const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
+
+    expect(expanded.every((test) => (
+      new Set(test.questions.map((question) => question.templateId || question.id)).size >= 40
+    ))).toBe(true)
+  })
 })
 
 describe('validateCatalog', () => {
@@ -284,6 +292,18 @@ describe('validateCatalog', () => {
     expectIssue(
       makeValidTest({ questions }),
       'sample-test: expected at least 8 unique question templates, received 7'
+    )
+  })
+
+  it('requires forty unique templates for an expanded assessment', () => {
+    const questions = makeValidTest().questions.map((question, index) => ({
+      ...question,
+      templateId: `expanded-template-${index % 39}`
+    }))
+
+    expectIssue(
+      makeValidTest({ questions, normalizeDimensionScores: true }),
+      'sample-test: expected at least 40 unique question templates for expanded assessment, received 39'
     )
   })
 
