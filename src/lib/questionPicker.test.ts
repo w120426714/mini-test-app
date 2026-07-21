@@ -15,6 +15,14 @@ function makeQuestion(index: number): TestQuestion {
   }
 }
 
+function createLcg(seed: number) {
+  let state = seed & 0x7fffffff
+  return () => {
+    state = (Math.imul(1103515245, state) + 12345) & 0x7fffffff
+    return state / 0x80000000
+  }
+}
+
 const sampleTest: TestDefinition = {
   id: 'sample',
   title: 'Sample',
@@ -71,6 +79,79 @@ describe('selectQuestionsForRun', () => {
       expect(difficulties.size, test.id).toBeGreaterThanOrEqual(3)
       expect(difficulties, test.id).not.toEqual(new Set([1]))
     }
+  })
+
+  it('guarantees three difficulties for expanded runs across deterministic LCG sequences', () => {
+    const expandedTests = tests.filter((test) => test.normalizeDimensionScores)
+
+    for (const seed of [1760, 369]) {
+      for (const test of expandedTests) {
+        const selected = selectQuestionsForRun(test, createLcg(seed))
+        const difficulties = new Set(selected.map((question) => question.difficulty))
+        const domainCounts = selected.reduce<Record<string, number>>((counts, question) => {
+          const domain = question.domain || 'missing'
+          counts[domain] = (counts[domain] || 0) + 1
+          return counts
+        }, {})
+
+        expect(selected).toHaveLength(test.questionCount)
+        expect(new Set(selected.map((question) => question.id)).size).toBe(test.questionCount)
+        expect(new Set(selected.map((question) => question.templateId)).size).toBe(test.questionCount)
+        expect(difficulties.size, `${test.id}/seed-${seed}`).toBeGreaterThanOrEqual(3)
+        expect(Math.max(...Object.values(domainCounts)) - Math.min(...Object.values(domainCounts))).toBeLessThanOrEqual(1)
+      }
+    }
+  })
+
+  it('fills short runs without requiring three difficulties', () => {
+    const questions = [1, 2, 3].map((index) => ({
+      ...makeQuestion(index),
+      domain: index % 2 === 0 ? 'spatial' : 'logic',
+      difficulty: index as 1 | 2 | 3,
+      templateId: `short-${index}`
+    }))
+
+    const selected = selectQuestionsForRun(
+      { ...sampleTest, questionCount: 2, questions },
+      createLcg(1760)
+    )
+
+    expect(selected).toHaveLength(2)
+  })
+
+  it('fills the run when the bank contains fewer than three difficulties', () => {
+    const questions = [1, 2, 3, 4, 5, 6].map((index) => ({
+      ...makeQuestion(index),
+      domain: ['logic', 'spatial', 'memory'][index % 3],
+      difficulty: (index % 2 === 0 ? 1 : 2) as 1 | 2,
+      templateId: `limited-${index}`
+    }))
+
+    const selected = selectQuestionsForRun(
+      { ...sampleTest, questionCount: 4, questions },
+      createLcg(1760)
+    )
+
+    expect(selected).toHaveLength(4)
+    expect(new Set(selected.map((question) => question.difficulty)).size).toBe(2)
+  })
+
+  it('finds a feasible three-difficulty selection when templates conflict', () => {
+    const questions = [
+      { ...makeQuestion(1), domain: 'logic', difficulty: 1 as const, templateId: 'shared' },
+      { ...makeQuestion(2), domain: 'logic', difficulty: 1 as const, templateId: 'difficulty-one' },
+      { ...makeQuestion(3), domain: 'spatial', difficulty: 2 as const, templateId: 'shared' },
+      { ...makeQuestion(4), domain: 'memory', difficulty: 3 as const, templateId: 'difficulty-three' }
+    ]
+
+    const selected = selectQuestionsForRun(
+      { ...sampleTest, questionCount: 3, questions },
+      () => 0.99
+    )
+
+    expect(selected).toHaveLength(3)
+    expect(new Set(selected.map((question) => question.templateId)).size).toBe(3)
+    expect(new Set(selected.map((question) => question.difficulty)).size).toBe(3)
   })
 
   it('selects the configured number of unique questions', () => {
