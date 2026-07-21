@@ -25,6 +25,53 @@ const seedQuestions: TestQuestion[] = [
 ]
 
 describe('buildAssessmentBank', () => {
+  it('preserves each explicit seed domain throughout a 500-question expansion', () => {
+    const domainSeeds: TestQuestion[] = [
+      {
+        ...seedQuestions[0],
+        domain: 'empathy',
+        options: seedQuestions[0].options.map((option) => ({
+          ...option,
+          scores: { empathy: option.scores.focus }
+        }))
+      },
+      {
+        ...seedQuestions[1],
+        domain: 'focus',
+        options: seedQuestions[1].options.map((option) => ({
+          ...option,
+          scores: { focus: option.scores.empathy }
+        }))
+      }
+    ]
+
+    const bank = buildAssessmentBank({
+      testId: 'sample',
+      seedQuestions: domainSeeds,
+      targetCount: 500,
+      domains: ['focus', 'empathy']
+    })
+
+    expect(bank).toHaveLength(500)
+    expect(bank.every((question, index) => question.domain === domainSeeds[index % domainSeeds.length].domain)).toBe(true)
+    expect(bank.every((question) => question.options.some((option) => question.domain && question.domain in option.scores))).toBe(true)
+  })
+
+  it('evenly rotates fallback domains when seeds do not declare a domain', () => {
+    const bank = buildAssessmentBank({
+      testId: 'sample',
+      seedQuestions,
+      targetCount: 500,
+      domains: ['focus', 'empathy']
+    })
+
+    expect(bank.filter((question) => question.domain === 'focus')).toHaveLength(250)
+    expect(bank.filter((question) => question.domain === 'empathy')).toHaveLength(250)
+    expect(bank.slice(0, 6).map((question) => question.domain)).toEqual([
+      'focus', 'empathy', 'focus', 'empathy', 'focus', 'empathy'
+    ])
+  })
+
   it('expands curated seeds into a stable unique question bank with metadata', () => {
     const bank = buildAssessmentBank({
       testId: 'sample',

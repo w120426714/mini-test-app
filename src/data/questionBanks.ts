@@ -49,7 +49,7 @@ export function buildAssessmentBank({
 
   return Array.from({ length: targetCount }, (_, index) => {
     const seed = seedQuestions[index % seedQuestions.length]
-    const domain = domains[index % domains.length]
+    const domain = seed.domain ?? domains[index % domains.length]
     const scenario = SCENARIOS[Math.floor(index / seedQuestions.length) % SCENARIOS.length]
     const questionId = `${testId}-bank-${String(index + 1).padStart(3, '0')}`
 
@@ -218,4 +218,3 @@ export function buildIqQuestionBank(seedQuestions: TestQuestion[], targetCount =
     ...generated
   ].slice(0, targetCount)
 }
-

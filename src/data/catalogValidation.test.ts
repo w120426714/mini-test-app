@@ -78,6 +78,13 @@ describe('published assessment catalog', () => {
     expect(validateCatalog(tests)).toEqual([])
   })
 
+  it('keeps every question domain represented by its option score dimensions', () => {
+    expect(tests.every((test) => test.questions.every((question) => (
+      Boolean(question.domain)
+      && question.options.some((option) => question.domain && question.domain in option.scores)
+    )))).toBe(true)
+  })
+
   it('identifies every expanded bank as original and non-clinical', () => {
     const expanded = tests.filter((test) => expandedTestIds.includes(test.id))
 
@@ -97,6 +104,13 @@ describe('validateCatalog', () => {
     expectIssue(
       makeValidTest({ questions: makeValidTest().questions.slice(0, 499) }),
       'sample-test: expected 500 questions, received 499'
+    )
+  })
+
+  it('reports a declared bank size other than 500 even when 500 questions exist', () => {
+    expectIssue(
+      makeValidTest({ bankSize: 499 }),
+      'sample-test: expected bankSize 500, received 499'
     )
   })
 
