@@ -1,42 +1,34 @@
 import Taro from '@tarojs/taro'
-
-const QUIZ_SESSION_VERSION = 1
-
-export interface QuizSession {
-  version: typeof QUIZ_SESSION_VERSION
-  testId: string
-  questionIds: string[]
-  answers: Record<string, string>
-  currentIndex: number
-  updatedAt: string
-}
+import type { QuizSession } from '../types/test'
 
 function getQuizSessionKey(testId: string): string {
   return `mini-test-app:quiz-session:v1:${testId}`
 }
 
-function isPlainStringRecord(value: unknown): value is Record<string, string> {
+function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
     return false
   }
 
-  if (Object.getPrototypeOf(value) !== Object.prototype) {
-    return false
-  }
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === Object.prototype || prototype === null
+}
 
-  return Object.entries(value).every(([key, answer]) => typeof key === 'string' && typeof answer === 'string')
+function isPlainStringRecord(value: unknown): value is Record<string, string> {
+  return isPlainObject(value) && Object.entries(value).every(([key, answer]) => typeof key === 'string' && typeof answer === 'string')
 }
 
 function isQuizSession(value: unknown, testId: string): value is QuizSession {
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+  if (!isPlainObject(value)) {
     return false
   }
 
-  const session = value as Record<string, unknown>
+  const session = value
   if (
-    session.version !== QUIZ_SESSION_VERSION ||
+    session.version !== 1 ||
     session.testId !== testId ||
     !Array.isArray(session.questionIds) ||
+    session.questionIds.length === 0 ||
     !session.questionIds.every((questionId) => typeof questionId === 'string') ||
     !isPlainStringRecord(session.answers) ||
     !Number.isInteger(session.currentIndex) ||
@@ -46,8 +38,9 @@ function isQuizSession(value: unknown, testId: string): value is QuizSession {
   }
 
   const currentIndex = session.currentIndex as number
-  const questionIds = session.questionIds as unknown[]
-  return questionIds.length === 0 ? currentIndex === 0 : currentIndex >= 0 && currentIndex < questionIds.length
+  const questionIds = session.questionIds as string[]
+  const answers = session.answers as Record<string, string>
+  return currentIndex >= 0 && currentIndex < questionIds.length && Object.keys(answers).every((questionId) => questionIds.includes(questionId))
 }
 
 export function getQuizSession(testId: string): QuizSession | undefined {
